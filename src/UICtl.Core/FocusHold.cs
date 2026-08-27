@@ -104,13 +104,12 @@ public static class FocusHold
     /// </summary>
     private static RefocusResult Reactivate(Held target)
     {
+        //The PID comparison defeats the window-level hold: if another window owned by the same process is foreground,
+        //this returns alreadyFrontmost without raising the held HWND. It also prevents release from restoring a previous window
+        //when both windows belong to one process. Compare the actual foreground HWND with target.WindowId before and after activation.
         if (ForegroundPid() == target.Pid) return RefocusResult.AlreadyFrontmost;
-
-        //Phase 2 PR Github Copilot made a suggestion that was accepted at line 62.
-        //It mentioned a similar change was needed around 107, but it is not clear if that change was done.
-        //Copying the line that it modified, to do further checking:
-        // ["isFrontmost"] = NativeMethods.GetForegroundWindow() == new IntPtr(held.WindowId),
-
+           //Should this be using: NativeMethods.GetForegroundWindow() == new IntPtr(held.WindowId)
+        
         try { AppsAndWindows.BringToFront(new IntPtr(target.WindowId)); }
         catch { return RefocusResult.Failed; }
 
