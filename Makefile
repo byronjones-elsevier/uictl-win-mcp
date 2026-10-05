@@ -13,7 +13,7 @@ RID      ?= win-x64
 
 .DEFAULT_GOAL := help
 
-.PHONY: help default all deps build rebuild test format format/check run daemon/stop publish install clean check/dotnet
+.PHONY: help default all deps build rebuild test format format/check run daemon/stop publish publish/win-x64 publish/win-arm64 publish/all install clean check/dotnet
 
 ## This help screen
 help:
@@ -66,9 +66,22 @@ run: build
 daemon/stop:
 	-$(UICTL) daemon stop
 
-## Publish a self-contained single-file uictl.exe to PUBLISH_DIR
+PUBLISH_CMD = $(DOTNET) publish $(CLI_PROJ) -c $(CONFIG) -r $(1) --self-contained -p:PublishSingleFile=true -o $(PUBLISH_DIR)/$(1)
+
+## Publish a self-contained single-file uictl.exe for RID (default win-x64)
 publish: deps
-	$(DOTNET) publish $(CLI_PROJ) -c $(CONFIG) -r $(RID) --self-contained -p:PublishSingleFile=true -o $(PUBLISH_DIR)
+	$(call PUBLISH_CMD,$(RID))
+
+## Publish for Windows x64
+publish/win-x64: deps
+	$(call PUBLISH_CMD,win-x64)
+
+## Publish for Windows ARM64
+publish/win-arm64: deps
+	$(call PUBLISH_CMD,win-arm64)
+
+## Publish for both win-x64 and win-arm64
+publish/all: publish/win-x64 publish/win-arm64
 
 ## Register the built uictl with Claude Code as an MCP server
 install: build
