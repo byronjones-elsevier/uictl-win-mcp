@@ -60,6 +60,10 @@ dotnet build -c Release
 The binary lands at `src/UICtl.Cli/bin/Release/net10.0/uictl.exe`. Either
 invoke it by that full path, or put it on `PATH`.
 
+If you have GNU Make (e.g. via Git Bash, MSYS2, or `choco install make`), the
+`Makefile` wraps the common tasks; run `make` to list them (`make build`,
+`make test`, `make publish`, `make install`, `make daemon/stop`).
+
 ## Permissions model — how this differs from macOS
 
 macOS gates Accessibility/Screen Recording behind an OS consent prompt (TCC).
