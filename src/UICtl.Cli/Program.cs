@@ -20,6 +20,8 @@ var help = root.Options.OfType<HelpOption>().First();
 help.Aliases.Add("-H");
 help.Aliases.Add("--HELP");
 
+root.Options.Add(LibsVersionOption.Build());
+
 root.Add(QueryCommands.Permissions());
 root.Add(QueryCommands.Apps());
 root.Add(QueryCommands.Windows());

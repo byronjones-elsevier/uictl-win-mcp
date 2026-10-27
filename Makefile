@@ -10,10 +10,11 @@ DOTNET   ?= dotnet
 UICTL    ?= src/UICtl.Cli/bin/$(CONFIG)/$(TFM)/uictl.exe
 PUBLISH_DIR ?= artifacts/publish
 RID      ?= win-x64
+SBOM_DIR ?= artifacts/sbom
 
 .DEFAULT_GOAL := help
 
-.PHONY: help default all deps build rebuild test format format/check run daemon/stop publish publish/win-x64 publish/win-arm64 publish/all install clean check/dotnet
+.PHONY: help default all deps build rebuild test format format/check run daemon/stop publish publish/win-x64 publish/win-arm64 publish/all install clean check/dotnet libs-version sbom sbom/install
 
 ## This help screen
 help:
@@ -66,7 +67,7 @@ run: build
 daemon/stop:
 	-$(UICTL) daemon stop
 
-PUBLISH_CMD = $(DOTNET) publish $(CLI_PROJ) -c $(CONFIG) -r $(1) --self-contained -p:PublishSingleFile=true -o $(PUBLISH_DIR)/$(1)
+PUBLISH_CMD = $(DOTNET) publish $(CLI_PROJ) -c $(CONFIG) -r $(1) --self-contained -p:PublishSingleFile=true -o $(PUBLISH_DIR)/$(1) && scripts/sbom.sh $(CLI_PROJ) $(PUBLISH_DIR)/$(1)
 
 ## Publish a self-contained single-file uictl.exe for RID (default win-x64)
 publish: deps
@@ -87,10 +88,23 @@ publish/all: publish/win-x64 publish/win-arm64
 install: build
 	claude mcp add uictl -- "$(abspath $(UICTL))" mcp
 
+## List NuGet libraries (direct and transitive) shipped by the CLI, with versions
+libs-version: deps
+	@scripts/libs-version.sh $(CLI_PROJ)
+
+## Install the pinned CycloneDX tool into dotnet-tools.json (once)
+sbom/install: check/dotnet
+	@[ -f dotnet-tools.json ] || $(DOTNET) new tool-manifest
+	$(DOTNET) tool install CycloneDX
+
+## Generate a CycloneDX SBOM (JSON) for the CLI into SBOM_DIR
+sbom: deps
+	scripts/sbom.sh $(CLI_PROJ) $(SBOM_DIR)
+
 ## Remove build outputs
 clean: check/dotnet
 	$(DOTNET) clean $(SOLUTION) -c $(CONFIG) --nologo -v q
-	rm -rf $(PUBLISH_DIR)
+	rm -rf $(PUBLISH_DIR) $(SBOM_DIR)
 
 ## Build (default workflow)
 default: build
