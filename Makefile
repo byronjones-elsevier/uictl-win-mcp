@@ -67,7 +67,7 @@ run: build
 daemon/stop:
 	-$(UICTL) daemon stop
 
-PUBLISH_CMD = $(DOTNET) publish $(CLI_PROJ) -c $(CONFIG) -r $(1) --self-contained -p:PublishSingleFile=true -o $(PUBLISH_DIR)/$(1) && scripts/sbom.sh $(CLI_PROJ) $(PUBLISH_DIR)/$(1)
+PUBLISH_CMD = $(DOTNET) publish $(CLI_PROJ) -c $(CONFIG) -r $(1) --self-contained -p:PublishSingleFile=true -o $(PUBLISH_DIR)/$(1) && scripts/sbom.sh $(CLI_PROJ) $(PUBLISH_DIR)/$(1) --skip-if-missing
 
 ## Publish a self-contained single-file uictl.exe for RID (default win-x64)
 publish: deps
@@ -92,10 +92,9 @@ install: build
 libs-version: deps
 	@scripts/libs-version.sh $(CLI_PROJ)
 
-## Install the pinned CycloneDX tool into dotnet-tools.json (once)
+## Restore the CycloneDX tool version pinned in dotnet-tools.json (once)
 sbom/install: check/dotnet
-	@[ -f dotnet-tools.json ] || $(DOTNET) new tool-manifest
-	$(DOTNET) tool install CycloneDX
+	$(DOTNET) tool restore
 
 ## Generate a CycloneDX SBOM (JSON) for the CLI into SBOM_DIR
 sbom: deps
