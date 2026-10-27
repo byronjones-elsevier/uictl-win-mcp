@@ -64,6 +64,11 @@ If you have GNU Make (e.g. via Git Bash, MSYS2, or `choco install make`), the
 `Makefile` wraps the common tasks; run `make` to list them (`make build`,
 `make test`, `make publish`, `make publish/win-arm64`, `make install`, `make daemon/stop`).
 
+`make libs-version` lists the NuGet libraries the source uses, and `make sbom`
+(after a one-time `make sbom/install`) writes a CycloneDX SBOM; `make publish`
+also writes one next to each published binary. To see what a built binary
+contains, run `uictl --libs-version`.
+
 ## Permissions model — how this differs from macOS
 
 macOS gates Accessibility/Screen Recording behind an OS consent prompt (TCC).
